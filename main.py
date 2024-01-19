@@ -4,6 +4,7 @@ from bs4 import BeautifulSoup
 import requests
 import json
 import psycopg2
+import time
 
 conn = psycopg2.connect(
    database="my_database", user='user', password='password', host='localhost', port= '5433'
@@ -35,6 +36,7 @@ def get_comments(urls):
     """
     final_obj = []
     for obj in urls:
+        time.sleep(3)
         page = requests.get(obj.get('url'))
         html = BeautifulSoup(page.content, "html.parser")
         body = html.find('div', class_='toptext')
@@ -50,6 +52,7 @@ def get_comments(urls):
             'body': body,
             'comments': comments_txt
         })
+        
     return final_obj
 
 
@@ -72,10 +75,10 @@ def scraping():
     """
     Scrape https://news.ycombinator.com/ask every 24 hours 
     """
-    
+    print('starting to scrape')
     urls_list = get_urls()
     final_obj = get_comments(urls_list)
     write_to_db(final_obj)
 
 if __name__ == "__main__":
-    scraping()
+    scraping.serve(name="my-hn-deployment",cron="0 18 * * *")
