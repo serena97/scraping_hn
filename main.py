@@ -3,6 +3,13 @@ from prefect import flow, task
 from bs4 import BeautifulSoup
 import requests
 import json
+import psycopg2
+
+conn = psycopg2.connect(
+   database="my_database", user='user', password='password', host='localhost', port= '5433'
+)
+cursor = conn.cursor()
+
 
 @task
 def get_urls():
@@ -43,8 +50,20 @@ def get_comments(urls):
             'body': body,
             'comments': comments_txt
         })
-    
-    print(final_obj[2])
+    return final_obj
+
+
+@task
+def write_to_db(final_obj):
+    query = """
+    INSERT INTO web_data (url, title, body, comments)
+    VALUES (%s, %s, %s, %s);
+    """
+    print(f"writing {len(final_obj)} rows to postgresql")
+    for row in final_obj:
+        data = (row['url'], row['title'], row['body'], row['comments'])
+        cursor.execute(query, data)
+        conn.commit()
 
     
     
@@ -53,9 +72,10 @@ def scraping():
     """
     Scrape https://news.ycombinator.com/ask every 24 hours 
     """
-    urls_list = get_urls()
-    comments = get_comments(urls_list)
     
+    urls_list = get_urls()
+    final_obj = get_comments(urls_list)
+    write_to_db(final_obj)
 
 if __name__ == "__main__":
     scraping()
