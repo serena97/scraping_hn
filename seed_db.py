@@ -17,6 +17,14 @@ CREATE TABLE IF NOT EXISTS web_data (
 )
 '''
 
+create_table_query_rightmove = '''
+CREATE TABLE IF NOT EXISTS rightmove (
+    price NUMERIC,
+    property_type TEXT,
+    bedrooms NUMERIC
+)
+'''
+
 # Connect to PostgreSQL and create the table
 try:
     # Connect to the database
@@ -32,7 +40,14 @@ try:
 
     # Create the table
     cur.execute(create_table_query)
-    print("Table created successfully")
+    print("web_data Table created successfully")
+
+    # Close the cursor and connection
+    conn.commit()
+    
+        # Create the table
+    cur.execute(create_table_query_rightmove)
+    print("rightmove Table created successfully")
 
     # Close the cursor and connection
     conn.commit()
